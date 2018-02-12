@@ -1,0 +1,50 @@
+---
+title: "RJAMI - Fast computation of Conditional Mutual Information for ceRNA network analysis
+"
+author: "Markus List, Andrea Hornakova, Jilles Vreeken, Marcel H. Schulz"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Purpose
+
+## Loading the library
+
+```{r}
+library(RJAMI)
+```
+
+
+## Testing if rJava is available
+
+RJAMI is a wrapper package that conveniently makes the functionality of JAMI available to R users.
+This is realized with the help of the rJava package that allows Java objects to
+be manipulated from R. To make sure you can use RJAMI you therefore need to 
+make sure that Java (version >= 1.8) and the rJava R package are installed and 
+properly configured to work together. To allow users to test if everything 
+is set up correctly, we provide a test function:
+
+```{r}
+test_jvm()
+```
+
+If there is a problem you will receive an error message here and you need to
+fix the installation. Typical problems are 
+
+- Java is not installed. Browse the web for instructions specific for your operating system to install Java.
+- rJava is not installed. Fix by ```install.packages("rJava")```
+- Java is not properly configured. Under linux this can often be fixed by
+```sudo update-alternatives --config java```. Another option is to set the environment variable JAVA_HOME correctly.
+- rJava is not properly configured. This can often be fixed by
+```sudo R CMD javareconf```
+
+If Java and rJava still don't work correctly, we recommend looking for help on [StackOverflow](https://stackoverflow.com/search?q=rJava).
+
+## Citation
+
+Hornakova and List et al., JAMI - Fast computation of Conditional Mutual Information for ceRNA network analysis
+ (manuscript in preparation)
