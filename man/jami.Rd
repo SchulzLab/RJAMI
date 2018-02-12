@@ -7,16 +7,20 @@
 jami(gene_miRNA_interactions, gene_expr, mir_expr, output_file = NULL)
 }
 \arguments{
-\item{gene_miRNA_interactions}{either a path, a data frame or a list of interacions to consider}
+\item{gene_miRNA_interactions}{either a path, a data frame, or a
+list of interacions to consider}
 
-\item{gene_expr}{either a path, a data frame or a matrix for gene expression data}
+\item{gene_expr}{either a path, a data frame, a matrix or
+ExpressionSet for gene expression data}
 
-\item{mir_expr}{either a path, a data frame or a matrix for miRNA expression data}
+\item{mir_expr}{either a path, a data frame, a matrix or
+ExpressionSet for miRNA expression data}
 
-\item{output_file}{optional output path for JAMI results}
+\item{output_file}{optional output filename for JAMI results}
 }
 \value{
-the JAMI result as data frame
+the JAMI result as a list of two data frames. result lists all
+triplets, aggregated pools p-values by Fisher's method for each gene
 }
 \description{
 Wrapper function for calling JAMI from R

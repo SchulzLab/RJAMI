@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Markus List, Andrea Hornakova, Jilles Vreeken, Marcel H. Schulz" />
+
+<meta name="date" content="2018-02-12" />
+
+<title>RJAMI - Fast computation of Conditional Mutual Information for ceRNA network analysis</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">RJAMI - Fast computation of Conditional Mutual Information for ceRNA network analysis</h1>
+<h4 class="author"><em>Markus List, Andrea Hornakova, Jilles Vreeken, Marcel H. Schulz</em></h4>
+<h4 class="date"><em>2018-02-12</em></h4>
+
+
+
+<div id="purpose" class="section level2">
+<h2>Purpose</h2>
+<p>JAMI is a java 8 software tool that enables its users to compute conditional mutual information for inferring competing endogenous RNA networks from matched gene and miRNA expression data. A detailled description of JAMI can be found on its <a href="http://jami.readthedocs.io/en/latest/index.html">website</a>. The purpose of RJAMI is to make the functionality of JAMI conveniently available to R users to simplify usage and downstream analyses.</p>
+</div>
+<div id="quickstart" class="section level2">
+<h2>Quickstart</h2>
+<p>If<br />
+- you are already familiar with JAMI - RJAMI is already set up correctly - you have prepared the necessary input files or R objects</p>
+<p>There are only two things you need to know. First, you can manipulate the JAMI command line arguments via <code>jami_settings()</code>, e.g.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">jami_settings</span>(<span class="dt">numberOfPermutations =</span> <span class="fl">1e6</span>)</code></pre></div>
+<p>Current settings are listed when no arguments are provided.</p>
+<p>Second, you can call JAMI via</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">jami</span>(<span class="dt">gene_miRNA_interactions =</span> your_interactions,
+                   <span class="dt">gene_expr =</span> your_gene_expr,
+                   <span class="dt">mir_expr =</span> your_mir_expr,
+                   <span class="dt">output_file =</span> your_desired_result_file)</code></pre></div>
+<p>This function accepts common R data objects or file paths where the target file needs to be formatted in a tab delimited text format JAMI can understand. In the remainder of this documentation we will explain how to use RJAMI in detail.</p>
+</div>
+<div id="installing-rjami" class="section level2">
+<h2>Installing RJAMI</h2>
+<p>RJAMI is currently only available on github. It can be conveniently installed through the devtools R package</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(devtools)
+<span class="kw">install_github</span>(<span class="st">&quot;SchulzLab/RJAMI&quot;</span>)</code></pre></div>
+<p>If installation was successful the package can be loaded via</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RJAMI)</code></pre></div>
+<pre><code>## Loading required package: rJava</code></pre>
+</div>
+<div id="before-we-begin-testing-if-rjava-is-available" class="section level2">
+<h2>Before we begin: testing if rJava is available</h2>
+<p>RJAMI is a wrapper package that conveniently makes the functionality of JAMI available to R users. This is realized with the help of the rJava package that allows Java objects to be manipulated from R. Before you can use RJAMI you therefore need to make sure that Java (version &gt;= 1.8) and the rJava R package are installed and properly configured to work together. To allow users to test if everything is set up correctly, we provide a test function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">test_jvm</span>()</code></pre></div>
+<pre><code>## The Java virtual machine is available and has the correct version.</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>If there is a problem you will receive an error message here and you need to fix the installation. Typical problems are</p>
+<ul>
+<li>Java is not installed. Browse the web for instructions specific for your operating system to install Java.</li>
+<li>rJava is not installed. Fix by <code>install.packages(&quot;rJava&quot;)</code></li>
+<li>Java is not properly configured. Under linux this can often be fixed by <code>sudo update-alternatives --config java</code>. Another option is to set the environment variable JAVA_HOME correctly.</li>
+<li>rJava is not properly configured. This can often be fixed by <code>sudo R CMD javareconf</code></li>
+</ul>
+<p>If Java and rJava still don’t work correctly, we recommend looking for help on <a href="https://stackoverflow.com/search?q=rJava">StackOverflow</a>.</p>
+</div>
+<div id="manipulate-settings" class="section level2">
+<h2>Manipulate Settings</h2>
+<p>JAMI comes with a set of command line arguments that allow users to set important parameters of the software with respect to input data, computation strategy, p-value handling etc. The meaning of the individual settings is explained in <a href="http://jami.readthedocs.io/en/latest/index.html#usage">JAMI’s user manual</a>. In RJAMI, we store these settings for convenience in a settings manager. Its current configuration can be listed like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">jami_settings</span>()</code></pre></div>
+<pre><code>## $header
+## [1] TRUE
+## 
+## $method
+## [1] &quot;&quot;
+## 
+## $numberOfBins
+## [1] 100
+## 
+## $tripleFormat
+## [1] TRUE
+## 
+## $numberOfThreads
+## [1] -1
+## 
+## $numberOfPermutations
+## [1] 1000
+## 
+## $pvalueCutOff
+## [1] 1
+## 
+## $batchSize
+## [1] 100
+## 
+## $considerZeros
+## [1] TRUE
+## 
+## $pChiSquare
+## [1] 0.05
+## 
+## $selectedGenes
+## NULL
+## 
+## $restricted
+## [1] FALSE</code></pre>
+<p>To change one of these settings you can provide new values via the same function, e.g.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">jami_settings</span>(<span class="dt">pvalueCutOff =</span> <span class="fl">0.05</span>)</code></pre></div>
+</div>
+<div id="input" class="section level2">
+<h2>Input</h2>
+<p>First, let’s load some toy data:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">load</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>,
+                 <span class="st">&quot;test_data.RData&quot;</span>,
+                 <span class="dt">package =</span> <span class="st">&quot;RJAMI&quot;</span>))</code></pre></div>
+<p>JAMI expects three types of input: - gene expression - matched miRNA expression - gene-miRNA or gene-miRNA-gene interactions to be considered.</p>
+<p>For the latter, two input formats are accepted. In the triple format, each gene-miRNA-gene interaction is listed separately like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(gene_mir_interactions_triplets)</code></pre></div>
+<pre><code>##             geneA           geneB       mirnas
+## 1 ENSG00000110427 ENSG00000105855 MIMAT0000077
+## 2 ENSG00000110427 ENSG00000105855 MIMAT0000265
+## 3 ENSG00000110427 ENSG00000105855 MIMAT0000268
+## 4 ENSG00000110427 ENSG00000105855 MIMAT0000421
+## 5 ENSG00000110427 ENSG00000151746 MIMAT0000068
+## 6 ENSG00000110427 ENSG00000151746 MIMAT0000243</code></pre>
+<p>In the set format, we list for each gene possible miRNA interaction partners. gene-miRNA-gene triplets are then inferred by JAMI on the fly based on shared miRNAs. This can be represented as a list in R:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(gene_mir_interactions_set)</code></pre></div>
+<pre><code>## $ENSG00000110427
+##  [1] &quot;MIMAT0000077&quot; &quot;MIMAT0000265&quot; &quot;MIMAT0000268&quot; &quot;MIMAT0000421&quot;
+##  [5] &quot;MIMAT0000068&quot; &quot;MIMAT0000243&quot; &quot;MIMAT0000414&quot; &quot;MIMAT0000423&quot;
+##  [9] &quot;MIMAT0000460&quot; &quot;MIMAT0000252&quot; &quot;MIMAT0002809&quot; &quot;MIMAT0003301&quot;
+## [13] &quot;MIMAT0004957&quot; &quot;MIMAT0000090&quot; &quot;MIMAT0000459&quot; &quot;MIMAT0002820&quot;
+## 
+## $ENSG00000105855
+##  [1] &quot;MIMAT0000250&quot; &quot;MIMAT0000418&quot; &quot;MIMAT0000421&quot; &quot;MIMAT0003150&quot;
+##  [5] &quot;MIMAT0000077&quot; &quot;MIMAT0004958&quot; &quot;MIMAT0000265&quot; &quot;MIMAT0001412&quot;
+##  [9] &quot;MIMAT0000072&quot; &quot;MIMAT0000268&quot;
+## 
+## $ENSG00000151746
+##  [1] &quot;MIMAT0000104&quot; &quot;MIMAT0000243&quot; &quot;MIMAT0000255&quot; &quot;MIMAT0000421&quot;
+##  [5] &quot;MIMAT0000460&quot; &quot;MIMAT0000068&quot; &quot;MIMAT0003150&quot; &quot;MIMAT0000250&quot;
+##  [9] &quot;MIMAT0000276&quot; &quot;MIMAT0000681&quot; &quot;MIMAT0000414&quot; &quot;MIMAT0000423&quot;
+## [13] &quot;MIMAT0000418&quot;
+## 
+## $ENSG00000163596
+##  [1] &quot;MIMAT0000077&quot; &quot;MIMAT0000104&quot; &quot;MIMAT0000421&quot; &quot;MIMAT0000243&quot;
+##  [5] &quot;MIMAT0000255&quot; &quot;MIMAT0000437&quot; &quot;MIMAT0000460&quot; &quot;MIMAT0002819&quot;
+##  [9] &quot;MIMAT0000086&quot; &quot;MIMAT0003301&quot; &quot;MIMAT0000080&quot; &quot;MIMAT0000252&quot;
+## [13] &quot;MIMAT0002809&quot;
+## 
+## $ENSG00000106665
+## [1] &quot;MIMAT0000419&quot; &quot;MIMAT0000421&quot; &quot;MIMAT0000425&quot; &quot;MIMAT0000077&quot;
+## [5] &quot;MIMAT0000104&quot; &quot;MIMAT0004957&quot;
+## 
+## $ENSG00000123095
+##  [1] &quot;MIMAT0000421&quot; &quot;MIMAT0002819&quot; &quot;MIMAT0000243&quot; &quot;MIMAT0000419&quot;
+##  [5] &quot;MIMAT0000255&quot; &quot;MIMAT0004958&quot; &quot;MIMAT0000090&quot; &quot;MIMAT0000459&quot;
+##  [9] &quot;MIMAT0000460&quot; &quot;MIMAT0002820&quot; &quot;MIMAT0000437&quot; &quot;MIMAT0000425&quot;</code></pre>
+<p>NOTE: If you want to use the set format you need to update the settings accordingly:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">jami_settings</span>(<span class="dt">tripleFormat =</span> <span class="ot">FALSE</span>)</code></pre></div>
+<p>For gene and miRNA expression data you can choose between Bioconductor ExpressionSet, data frames or matrices. An example for gene expression:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(gene_expr[,<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>])</code></pre></div>
+<pre><code>##                 TCGA.HP.A5N0.01 TCGA.DD.A3A8.01 TCGA.ED.A7PY.01
+## ENSG00000110427         -9.9658         -9.9658         -4.2934
+## ENSG00000105855         -6.5064         -9.9658         -4.6082
+## ENSG00000151746         -0.7346         -3.4580         -0.6193
+## ENSG00000163596         -2.9324         -3.8160         -1.7322
+## ENSG00000106665          1.8323          1.6466          0.6880
+## ENSG00000123095         -0.4131         -1.5951         -5.0116</code></pre>
+<p>And an example for miRNA expression data:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(mir_expr[,<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>])</code></pre></div>
+<pre><code>##              TCGA.HP.A5N0.01 TCGA.DD.A3A8.01 TCGA.ED.A7PY.01
+## MIMAT0000068        8.136912        7.781218        7.880530
+## MIMAT0000077       17.681745       17.699058       17.235570
+## MIMAT0000090        5.112534        6.802750        7.571181
+## MIMAT0000243       16.561978       17.994316       17.020495
+## MIMAT0000252        0.333900        1.108679        0.000000
+## MIMAT0000265        6.737884        7.062023        3.897740</code></pre>
+<p>For all three input options you can also provide a file path. In this case, we expect that the target files follow the file formats that JAMI understands. These are detailled in the <a href="http://jami.readthedocs.io/en/latest/index.html#input">user manual</a>.</p>
+</div>
+<div id="execution" class="section level2">
+<h2>Execution</h2>
+<p>Once all input data are prepared you can call the <code>jami()</code> function. With above toy data sets this would look like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">result &lt;-<span class="st"> </span><span class="kw">jami</span>(<span class="dt">gene_miRNA_interactions =</span> gene_mir_interactions_triplets,
+                   <span class="dt">gene_expr =</span> gene_expr,
+                   <span class="dt">mir_expr =</span> mir_expr,
+                   <span class="dt">output_file =</span> <span class="kw">tempfile</span>())</code></pre></div>
+<pre><code>## writing gene expression matrix to temporary file</code></pre>
+<pre><code>## writing mir expression matrix to temporary file</code></pre>
+<pre><code>## writing gene miRNA interactions to temporary file</code></pre>
+<p>Here, we use a temporary file for storing the results. Alternatively, you can provide a file path of your choice to save the results for later use. These results can then be imported using standard R code, e.g. <code>read.table</code>.</p>
+<p>The result of JAMI has two parts. The first part lists the results of all tested gene-miRNA-gene triplets:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(result<span class="op">$</span>result)</code></pre></div>
+<pre><code>##            Source          Target        miRNA        CMI p.value
+## 1 ENSG00000110427 ENSG00000106348 MIMAT0000243 0.07034157   0.999
+## 2 ENSG00000106348 ENSG00000110427 MIMAT0000243 0.09780933   0.235
+## 3 ENSG00000106665 ENSG00000106348 MIMAT0000421 0.07019410   0.975
+## 4 ENSG00000106348 ENSG00000106665 MIMAT0000421 0.10316294   0.965
+## 5 ENSG00000106665 ENSG00000114529 MIMAT0000421 0.13876215   0.743
+## 6 ENSG00000114529 ENSG00000106665 MIMAT0000421 0.08130458   0.999
+##   p.adjusted
+## 1  0.9990000
+## 2  0.5322517
+## 3  1.0000000
+## 4  1.0000000
+## 5  1.0000000
+## 6  0.9990000</code></pre>
+<p>In the second part, results have been aggregated for all gene-gene pairs. To obtain an aggregate p-value we use the Fisher method.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(result<span class="op">$</span>aggregated)</code></pre></div>
+<pre><code>##            Source          Target Number.of.miRNAs
+## 1 ENSG00000106665 ENSG00000110427                3
+## 2 ENSG00000106665 ENSG00000123095                3
+## 3 ENSG00000106665 ENSG00000106348                4
+## 4 ENSG00000106665 ENSG00000163596                3
+## 5 ENSG00000106665 ENSG00000100767                3
+## 6 ENSG00000106665 ENSG00000105855                2
+##                                                miRNAs
+## 1              MIMAT0000077,MIMAT0000421,MIMAT0004957
+## 2              MIMAT0000419,MIMAT0000421,MIMAT0000425
+## 3 MIMAT0000421,MIMAT0000419,MIMAT0000104,MIMAT0000077
+## 4              MIMAT0000104,MIMAT0000421,MIMAT0000077
+## 5              MIMAT0000077,MIMAT0000419,MIMAT0000421
+## 6                           MIMAT0000077,MIMAT0000421
+##   Number.of.significant.miRNAs                     significant.miRNAs
+## 1                            3 MIMAT0000077,MIMAT0000421,MIMAT0004957
+## 2                            3 MIMAT0000419,MIMAT0000421,MIMAT0000425
+## 3                            3 MIMAT0000419,MIMAT0000104,MIMAT0000077
+## 4                            3 MIMAT0000104,MIMAT0000421,MIMAT0000077
+## 5                            2              MIMAT0000077,MIMAT0000419
+## 6                            2              MIMAT0000077,MIMAT0000421
+##      CMI.min    CMI.max p.value.min p.value.min.1 p.adjusted.min
+## 1 0.06648944 0.16297544       0.001         0.030     0.00684000
+## 2 0.01590993 0.08066715       0.001         0.999     0.00684000
+## 3 0.00769904 0.07313074       0.007         0.999     0.03627273
+## 4 0.02569450 0.06649605       0.029         0.999     0.10551064
+## 5 0.06456413 0.08437623       0.001         0.981     0.00684000
+## 6 0.08975506 0.13525228       0.001         0.526     0.00684000
+##   p.adjusted.max p.adjusted.Fisher
+## 1      0.1068750       0.002686688
+## 2      0.9990000       0.036423645
+## 3      1.0000000       0.517449331
+## 4      0.9990000       0.213776965
+## 5      1.0000000       0.006309368
+## 6      0.9671613       0.039813742</code></pre>
+</div>
+<div id="plotting-the-network-graph" class="section level2">
+<h2>Plotting the network graph</h2>
+<p>The significant ceRNA interactions reported by JAMI give rise to a ceRNA interaction network that can be drawn using any of the graph visualization libraries in R. Here we illustrate how the igraph R package can be used:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(igraph)
+edges &lt;-<span class="st"> </span><span class="kw">graph_from_data_frame</span>(result<span class="op">$</span>aggregated, <span class="dt">directed =</span> <span class="ot">TRUE</span>)
+<span class="kw">plot</span>(edges)</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+<div id="downstream-analysis" class="section level2">
+<h2>Downstream analysis</h2>
+<p>In R and in particular in the Bioconductor ecosystem dozens of packages have been developed for gene set analysis. We refer to <a href="http://bioconductor.org/">bioconductor</a> for an overview.</p>
+</div>
+<div id="final-words" class="section level2">
+<h2>Final words</h2>
+<p>RJAMI has been developed to make JAMI more accessible. Should you encounter any issues with it please consider creating an issue on our github repository. Finally, if you find JAMI and RJAMI useful consider citing our paper.</p>
+</div>
+<div id="citation" class="section level2">
+<h2>Citation</h2>
+<p>Hornakova and List et al., JAMI - Fast computation of Conditional Mutual Information for ceRNA network analysis (manuscript under revision)</p>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

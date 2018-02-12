@@ -10,20 +10,67 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-## Purpose
+## Purpose 
 
-## Loading the library
+JAMI is a java 8 software tool that enables its users to compute conditional 
+mutual information for inferring competing endogenous RNA networks from matched
+gene and miRNA expression data. A detailled description of JAMI can be found
+on its [website](http://jami.readthedocs.io/en/latest/index.html). 
+The purpose of RJAMI is to make the functionality of JAMI conveniently available
+to R users to simplify usage and downstream analyses. 
 
+## Quickstart
+
+If  
+  - you are already familiar with JAMI 
+  - RJAMI is already set up correctly
+  - you have prepared the necessary input files or R objects
+
+There are only two things you need to know.
+First, you can manipulate the JAMI command
+line arguments via ```jami_settings()```, e.g.
+
+```{r, eval = FALSE}
+jami_settings(numberOfPermutations = 1e6)
+```
+
+Current settings are listed when no arguments are provided.
+
+Second, you can call JAMI via
+
+```{r, eval = FALSE}
+jami(gene_miRNA_interactions = your_interactions,
+                   gene_expr = your_gene_expr,
+                   mir_expr = your_mir_expr,
+                   output_file = your_desired_result_file)
+
+```
+
+This function accepts common R data objects or file paths where the target file
+needs to be formatted in a tab delimited text format JAMI can understand. In 
+the remainder of this documentation we will explain how to use RJAMI in detail.
+
+## Installing RJAMI
+
+RJAMI is currently only available on github. It can be conveniently installed 
+through the devtools R package
+
+```{r, eval=FALSE}
+library(devtools)
+install_github("SchulzLab/RJAMI")
+```
+
+If installation was successful the package can be loaded via
 ```{r}
 library(RJAMI)
 ```
 
 
-## Testing if rJava is available
+## Before we begin: testing if rJava is available
 
 RJAMI is a wrapper package that conveniently makes the functionality of JAMI available to R users.
 This is realized with the help of the rJava package that allows Java objects to
-be manipulated from R. To make sure you can use RJAMI you therefore need to 
+be manipulated from R. Before you can use RJAMI you therefore need to 
 make sure that Java (version >= 1.8) and the rJava R package are installed and 
 properly configured to work together. To allow users to test if everything 
 is set up correctly, we provide a test function:
@@ -44,7 +91,137 @@ fix the installation. Typical problems are
 
 If Java and rJava still don't work correctly, we recommend looking for help on [StackOverflow](https://stackoverflow.com/search?q=rJava).
 
+## Manipulate Settings
+
+JAMI comes with a set of command line arguments that allow users to set 
+important parameters of the software with respect to input data, 
+computation strategy, p-value handling etc. The meaning of the individual 
+settings is explained in 
+[JAMI's user manual](http://jami.readthedocs.io/en/latest/index.html#usage).
+In RJAMI, we store these settings for convenience in a settings manager. Its
+current configuration can be listed like this:
+
+```{r}
+jami_settings()
+```
+
+To change one of these settings you can provide new values via the same function, e.g.
+
+```{r}
+jami_settings(pvalueCutOff = 0.05)
+```
+
+## Input
+
+First, let's load some toy data:
+```{r}
+load(system.file("extdata",
+                 "test_data.RData",
+                 package = "RJAMI"))
+```
+
+
+JAMI expects three types of input:
+- gene expression
+- matched miRNA expression
+- gene-miRNA or gene-miRNA-gene interactions to be considered. 
+
+For the latter, two input formats are accepted. In the triple format, each 
+gene-miRNA-gene interaction is listed separately like this:
+
+```{r}
+head(gene_mir_interactions_triplets)
+```
+
+
+In the set format, we list for each gene possible miRNA interaction
+partners. gene-miRNA-gene triplets are then inferred by JAMI on the fly based on
+shared miRNAs. This can be represented as a list in R:
+
+```{r}
+head(gene_mir_interactions_set)
+```
+
+NOTE: If you want to use the set format you need to update the settings 
+accordingly:
+
+```{r, eval= FALSE}
+jami_settings(tripleFormat = FALSE)
+```
+
+For gene and miRNA expression data you can choose between Bioconductor 
+ExpressionSet, data frames or matrices. An example for gene expression:
+
+```{r}
+head(gene_expr[,1:3])
+```
+
+And an example for miRNA expression data:
+
+```{r}
+head(mir_expr[,1:3])
+```
+
+For all three input options you can also provide a file path. In this case, we
+expect that the target files follow the file formats that JAMI understands. These
+are detailled in the [user manual](http://jami.readthedocs.io/en/latest/index.html#input).
+
+## Execution
+
+Once all input data are prepared you can call the ```jami()``` function. With 
+above toy data sets this would look like this:
+
+```{r}
+result <- jami(gene_miRNA_interactions = gene_mir_interactions_triplets,
+                   gene_expr = gene_expr,
+                   mir_expr = mir_expr,
+                   output_file = tempfile())
+
+```
+
+Here, we use a temporary file for storing the results. Alternatively, you can
+provide a file path of your choice to save the results for later use. These
+results can then be imported using standard R code, e.g. ```read.table```.
+
+The result of JAMI has two parts. The first part lists the results of all tested
+gene-miRNA-gene triplets:
+
+```{r}
+head(result$result)
+```
+
+In the second part, results have been aggregated for all gene-gene pairs. To
+obtain an aggregate p-value we use the Fisher method.
+
+```{r}
+head(result$aggregated)
+```
+
+
+## Plotting the network graph
+
+The significant ceRNA interactions reported by JAMI give rise to a ceRNA interaction network that can be drawn using any of the graph visualization libraries in R. Here we illustrate how the igraph R package can be used:
+
+```{r, message=FALSE, warning=FALSE,error=FALSE, fig.width = 10, fig.height = 10}
+library(igraph)
+edges <- graph_from_data_frame(result$aggregated, directed = TRUE)
+plot(edges)
+```
+
+## Downstream analysis
+
+In R and in particular in the Bioconductor ecosystem dozens of packages have
+been developed for gene set analysis. 
+We refer to [bioconductor](http://bioconductor.org/) for an overview.
+
+## Final words
+
+RJAMI has been developed to make JAMI more accessible. Should you encounter any
+issues with it please consider creating an issue on our github repository. 
+Finally, if you find JAMI and RJAMI useful consider citing our paper.
+
 ## Citation
 
-Hornakova and List et al., JAMI - Fast computation of Conditional Mutual Information for ceRNA network analysis
- (manuscript in preparation)
+Hornakova and List et al., JAMI - Fast computation of Conditional Mutual 
+Information for ceRNA network analysis
+ (manuscript under revision)
