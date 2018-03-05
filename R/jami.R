@@ -97,6 +97,7 @@ jami <- function(gene_miRNA_interactions,
 
     result <- read.delim(file = output_file, header = TRUE)
     result_aggregated <- read.delim(
-        file = paste0(output_file, "_aggregated"), header = TRUE)
+        file = paste0(tools::file_path_sans_ext(output_file),
+                      "_aggregated.txt"), header = TRUE)
     return(list(result = result, aggregated = result_aggregated))
 }
