@@ -174,8 +174,7 @@ above toy data sets this would look like this:
 ```{r}
 result <- jami(gene_miRNA_interactions = gene_mir_interactions_triplets,
                    gene_expr = gene_expr,
-                   mir_expr = mir_expr,
-                   output_file = tempfile())
+                   mir_expr = mir_expr)
 
 ```
 
