@@ -1,7 +1,7 @@
 #' Wrapper function for calling JAMI from R
 #'
 #' @param gene_miRNA_interactions either a path, a data frame, or a
-#' list of interacions to consider
+#' list of interactions to consider
 #' @param gene_expr either a path, a data frame, a matrix or
 #' ExpressionSet for gene expression data
 #' @param mir_expr either a path, a data frame, a matrix or
@@ -15,8 +15,6 @@
 #' @examples
 jami <- function(gene_miRNA_interactions,
                  gene_expr, mir_expr, output_file = NULL){
-
-    settingsManager <- jami_create_settings_manager()
 
     if(is.character(gene_expr)){
         if(!file.exists(gene_expr))
@@ -60,17 +58,20 @@ jami <- function(gene_miRNA_interactions,
         message("writing gene miRNA interactions to temporary file")
         gene_miRNA_interactions_file <- tempfile(fileext = ".txt")
 
-        if(is.list(gene_miRNA_interactions) & !is.data.frame(gene_miRNA_interactions))
+        if(is.list(gene_miRNA_interactions) & !is.data.frame(gene_miRNA_interactions)){
             gene_miRNA_interactions <- write_to_JAMI_set_format(
                 gene_miRNA_interactions = gene_miRNA_interactions,
                 output_file = gene_miRNA_interactions_file)
-        else{
+
+            jami_settings(tripleFormat = FALSE)
+        } else{
             write.table(gene_miRNA_interactions,
                         file = gene_miRNA_interactions_file,
                         quote = FALSE,
                         sep = "\t",
                         row.names = FALSE,
                         col.names = TRUE)
+            jami_settings(tripleFormat = TRUE)
         }
     }
 
@@ -79,6 +80,8 @@ jami <- function(gene_miRNA_interactions,
     else{
         if(dir.exists(output_file)) stop("output file is a path")
     }
+
+    settingsManager <- jami_create_settings_manager()
 
     completeRun <-
         .jnew("org.mpii.jami.CompleteRun",
