@@ -10,6 +10,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+## News
+
+09.01.2019 - RJAMI now uses JAMI v. 1.1 which implements a few minor improvements and fixes a bug in the multiple testing correction.
+
 ## Purpose 
 
 JAMI is a java 8 software tool that enables its users to compute conditional 
@@ -221,6 +225,4 @@ Finally, if you find JAMI and RJAMI useful consider citing our paper.
 
 ## Citation
 
-Hornakova and List et al., JAMI - Fast computation of Conditional Mutual 
-Information for ceRNA network analysis
- (manuscript under revision)
+Andrea Hornakova, Markus List, Jilles Vreeken, Marcel H Schulz; JAMI: fast computation of conditional mutual information for ceRNA network analysis, Bioinformatics, Volume 34, Issue 17, 1 September 2018, Pages 3050–3051, https://doi.org/10.1093/bioinformatics/bty221
