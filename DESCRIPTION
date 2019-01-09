@@ -1,7 +1,7 @@
 Package: RJAMI
 Type: Package
 Title: This is a wrapper package for JAMI
-Version: 0.1.0
+Version: 0.1.1
 Author: Markus List, Andrea Hornakova, Jilles Vreeken, Marcel H. Schulz
 Maintainer: Markus List <markus.list@mpi-inf.mpg.de>
 Description: More about what it does (maybe more than one line)
